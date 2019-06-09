@@ -14,6 +14,10 @@ class GoogleMapController {
     channel.setMethodCallHandler(_handleMethodCall);
   }
 
+  bool _isGesture = false;
+
+  bool get isGesture => _isGesture;
+
   static Future<GoogleMapController> init(
     int id,
     CameraPosition initialCameraPosition,
@@ -41,6 +45,7 @@ class GoogleMapController {
         if (_googleMapState.widget.onCameraMoveStarted != null) {
           _googleMapState.widget.onCameraMoveStarted();
         }
+        _isGesture = call.arguments["isGesture"];
         break;
       case 'camera#onMove':
         if (_googleMapState.widget.onCameraMove != null) {

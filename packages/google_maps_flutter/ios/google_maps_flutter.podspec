@@ -15,7 +15,7 @@ A new flutter plugin project.
   s.source_files = "Classes/**/*"
   s.public_header_files = "Classes/**/*.h"
   s.dependency "Flutter"
-  s.dependency "GoogleMaps", "3.0"
+  s.dependency "GoogleMaps", "2.7.0"
   s.static_framework = true
   s.ios.deployment_target = "8.0"
 end

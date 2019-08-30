@@ -65,7 +65,9 @@ static double ToDouble(NSNumber* data) { return [FLTGoogleMapJsonConversions toD
                     registrar:(NSObject<FlutterPluginRegistrar>*)registrar {
   if ([super init]) {
     _viewId = viewId;
-
+//      if(frame.size.width == 0) {
+//          frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
+//      }
     GMSCameraPosition* camera = ToOptionalCameraPosition(args[@"initialCameraPosition"]);
     _mapView = [GMSMapView mapWithFrame:frame camera:camera];
     _mapView.accessibilityElementsHidden = NO;
@@ -250,7 +252,9 @@ static double ToDouble(NSNumber* data) { return [FLTGoogleMapJsonConversions toD
 }
 
 - (void)animateWithCameraUpdate:(GMSCameraUpdate*)cameraUpdate {
-  [_mapView animateWithCameraUpdate:cameraUpdate];
+    NSLog(@"%@", cameraUpdate);
+    GMSCameraUpdate *update = [GMSCameraUpdate setTarget:CLLocationCoordinate2DMake(46.771210, 23.623634) zoom:14];
+  [_mapView animateWithCameraUpdate:update];
 }
 
 - (void)moveWithCameraUpdate:(GMSCameraUpdate*)cameraUpdate {

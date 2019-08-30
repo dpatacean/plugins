@@ -23,8 +23,9 @@
 }
 
 + (CLLocationCoordinate2D)toLocation:(NSArray*)data {
-  return CLLocationCoordinate2DMake([FLTGoogleMapJsonConversions toDouble:data[0]],
+  CLLocationCoordinate2D coords = CLLocationCoordinate2DMake([FLTGoogleMapJsonConversions toDouble:data[0]],
                                     [FLTGoogleMapJsonConversions toDouble:data[1]]);
+    return coords;
 }
 
 + (CGPoint)toPoint:(NSArray*)data {

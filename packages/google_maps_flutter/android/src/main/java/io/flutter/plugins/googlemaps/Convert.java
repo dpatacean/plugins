@@ -7,6 +7,7 @@ package io.flutter.plugins.googlemaps;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
+
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.BitmapDescriptor;
@@ -23,15 +24,17 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.PatternItem;
 import com.google.android.gms.maps.model.RoundCap;
 import com.google.android.gms.maps.model.SquareCap;
-import io.flutter.view.FlutterMain;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.flutter.view.FlutterMain;
+
 /** Conversions between JSON-like values and GoogleMaps data types. */
-class Convert {
+class    Convert {
 
   private static BitmapDescriptor toBitmapDescriptor(Object o) {
     final List<?> data = toList(o);
@@ -260,6 +263,10 @@ class Convert {
     if (compassEnabled != null) {
       sink.setCompassEnabled(toBoolean(compassEnabled));
     }
+    final Object mapToolbarEnabled = data.get("mapToolbarEnabled");
+    if (mapToolbarEnabled != null) {
+      sink.setMapToolbarEnabled(toBoolean(mapToolbarEnabled));
+    }
     final Object mapType = data.get("mapType");
     if (mapType != null) {
       sink.setMapType(toInt(mapType));
@@ -270,6 +277,15 @@ class Convert {
       sink.setMinMaxZoomPreference( //
           toFloatWrapper(zoomPreferenceData.get(0)), //
           toFloatWrapper(zoomPreferenceData.get(1)));
+    }
+    final Object padding = data.get("padding");
+    if (padding != null) {
+      final List<?> paddingData = toList(padding);
+      sink.setPadding(
+          toFloat(paddingData.get(0)),
+          toFloat(paddingData.get(1)),
+          toFloat(paddingData.get(2)),
+          toFloat(paddingData.get(3)));
     }
     final Object rotateGesturesEnabled = data.get("rotateGesturesEnabled");
     if (rotateGesturesEnabled != null) {
@@ -298,6 +314,14 @@ class Convert {
     final Object myLocationButtonEnabled = data.get("myLocationButtonEnabled");
     if (myLocationButtonEnabled != null) {
       sink.setMyLocationButtonEnabled(toBoolean(myLocationButtonEnabled));
+    }
+    final Object indoorEnabled = data.get("indoorEnabled");
+    if (indoorEnabled != null) {
+      sink.setIndoorEnabled(toBoolean(indoorEnabled));
+    }
+    final Object trafficEnabled = data.get("trafficEnabled");
+    if (trafficEnabled != null) {
+      sink.setTrafficEnabled(toBoolean(trafficEnabled));
     }
   }
 

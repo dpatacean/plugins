@@ -35,6 +35,9 @@ static double ToDouble(NSNumber* data) { return [FLTGoogleMapJsonConversions toD
 - (NSObject<FlutterPlatformView>*)createWithFrame:(CGRect)frame
                                    viewIdentifier:(int64_t)viewId
                                         arguments:(id _Nullable)args {
+    if(frame.size.width == 0) {
+        frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
+    }
   return [[FLTGoogleMapController alloc] initWithFrame:frame
                                         viewIdentifier:viewId
                                              arguments:args
@@ -100,7 +103,7 @@ static double ToDouble(NSNumber* data) { return [FLTGoogleMapJsonConversions toD
     if ([markersToAdd isKindOfClass:[NSArray class]]) {
       [_markersController addMarkers:markersToAdd];
     }
-    id polygonsToAdd = args[@"polygonToAdd"];
+    id polygonsToAdd = args[@"polygonsToAdd"];
     if ([polygonsToAdd isKindOfClass:[NSArray class]]) {
       [_polygonsController addPolygons:polygonsToAdd];
     }
@@ -208,6 +211,9 @@ static double ToDouble(NSNumber* data) { return [FLTGoogleMapJsonConversions toD
   } else if ([call.method isEqualToString:@"map#isCompassEnabled"]) {
     NSNumber* isCompassEnabled = @(_mapView.settings.compassButton);
     result(isCompassEnabled);
+  } else if ([call.method isEqualToString:@"map#isMapToolbarEnabled"]) {
+    NSNumber* isMapToolbarEnabled = [NSNumber numberWithBool:NO];
+    result(isMapToolbarEnabled);
   } else if ([call.method isEqualToString:@"map#getMinMaxZoomLevels"]) {
     NSArray* zoomLevels = @[ @(_mapView.minZoom), @(_mapView.maxZoom) ];
     result(zoomLevels);
@@ -226,6 +232,9 @@ static double ToDouble(NSNumber* data) { return [FLTGoogleMapJsonConversions toD
   } else if ([call.method isEqualToString:@"map#isMyLocationButtonEnabled"]) {
     NSNumber* isMyLocationButtonEnabled = @(_mapView.settings.myLocationButton);
     result(isMyLocationButtonEnabled);
+  } else if ([call.method isEqualToString:@"map#isTrafficEnabled"]) {
+    NSNumber* isTrafficEnabled = @(_mapView.trafficEnabled);
+    result(isTrafficEnabled);
   } else if ([call.method isEqualToString:@"map#setStyle"]) {
     NSString* mapStyle = [call arguments];
     NSString* error = [self setMapStyle:mapStyle];
@@ -279,12 +288,24 @@ static double ToDouble(NSNumber* data) { return [FLTGoogleMapJsonConversions toD
   _mapView.settings.compassButton = enabled;
 }
 
+- (void)setIndoorEnabled:(BOOL)enabled {
+  _mapView.indoorEnabled = enabled;
+}
+
+- (void)setTrafficEnabled:(BOOL)enabled {
+  _mapView.trafficEnabled = enabled;
+}
+
 - (void)setMapType:(GMSMapViewType)mapType {
   _mapView.mapType = mapType;
 }
 
 - (void)setMinZoom:(float)minZoom maxZoom:(float)maxZoom {
   [_mapView setMinZoom:minZoom maxZoom:maxZoom];
+}
+
+- (void)setPaddingTop:(float)top left:(float)left bottom:(float)bottom right:(float)right {
+  _mapView.padding = UIEdgeInsetsMake(top, left, bottom, right);
 }
 
 - (void)setRotateGesturesEnabled:(BOOL)enabled {
@@ -360,6 +381,11 @@ static double ToDouble(NSNumber* data) { return [FLTGoogleMapJsonConversions toD
 - (BOOL)mapView:(GMSMapView*)mapView didTapMarker:(GMSMarker*)marker {
   NSString* markerId = marker.userData[0];
   return [_markersController onMarkerTap:markerId];
+}
+
+- (void)mapView:(GMSMapView*)mapView didEndDraggingMarker:(GMSMarker*)marker {
+  NSString* markerId = marker.userData[0];
+  [_markersController onMarkerDragEnd:markerId coordinate:marker.position];
 }
 
 - (void)mapView:(GMSMapView*)mapView didTapInfoWindowOfMarker:(GMSMarker*)marker {
@@ -489,7 +515,15 @@ static void InterpretMapOptions(NSDictionary* data, id<FLTGoogleMapOptionsSink> 
   if (compassEnabled) {
     [sink setCompassEnabled:ToBool(compassEnabled)];
   }
-  NSNumber* mapType = data[@"mapType"];
+  id indoorEnabled = data[@"indoorEnabled"];
+  if (indoorEnabled) {
+    [sink setIndoorEnabled:ToBool(indoorEnabled)];
+  }
+  id trafficEnabled = data[@"trafficEnabled"];
+  if (trafficEnabled) {
+    [sink setTrafficEnabled:ToBool(trafficEnabled)];
+  }
+  id mapType = data[@"mapType"];
   if (mapType) {
     [sink setMapType:ToMapViewType(mapType)];
   }
@@ -499,6 +533,15 @@ static void InterpretMapOptions(NSDictionary* data, id<FLTGoogleMapOptionsSink> 
     float maxZoom = (zoomData[1] == [NSNull null]) ? kGMSMaxZoomLevel : ToFloat(zoomData[1]);
     [sink setMinZoom:minZoom maxZoom:maxZoom];
   }
+  NSArray* paddingData = data[@"padding"];
+  if (paddingData) {
+    float top = (paddingData[0] == [NSNull null]) ? 0 : ToFloat(paddingData[0]);
+    float left = (paddingData[1] == [NSNull null]) ? 0 : ToFloat(paddingData[1]);
+    float bottom = (paddingData[2] == [NSNull null]) ? 0 : ToFloat(paddingData[2]);
+    float right = (paddingData[3] == [NSNull null]) ? 0 : ToFloat(paddingData[3]);
+    [sink setPaddingTop:top left:left bottom:bottom right:right];
+  }
+
   NSNumber* rotateGesturesEnabled = data[@"rotateGesturesEnabled"];
   if (rotateGesturesEnabled) {
     [sink setRotateGesturesEnabled:ToBool(rotateGesturesEnabled)];

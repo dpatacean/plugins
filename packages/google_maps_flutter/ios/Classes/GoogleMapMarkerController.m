@@ -183,9 +183,12 @@ static UIImage* ExtractIcon(NSObject<FlutterPluginRegistrar>* registrar, NSArray
     }
   } else if ([iconData.firstObject isEqualToString:@"fromAssetImage"]) {
     if (iconData.count == 3) {
-      image = [UIImage imageNamed:[registrar lookupKeyForAsset:iconData[1]]];
-      NSNumber* scaleParam = iconData[2];
-      image = scaleImage(image, scaleParam);
+        NSString *iconName = iconData[1];
+        iconName = [iconName stringByReplacingOccurrencesOfString:@"graphics/" withString:@""];
+        
+      image = [UIImage imageNamed:iconName];
+//      NSNumber* scaleParam = iconData[2];
+//      image = scaleImage(image, scaleParam);
     } else {
       NSString* error =
           [NSString stringWithFormat:@"'fromAssetImage' should have exactly 3 arguments. Got: %lu",
@@ -283,6 +286,17 @@ static UIImage* ExtractIcon(NSObject<FlutterPluginRegistrar>* registrar, NSArray
   }
   [_methodChannel invokeMethod:@"marker#onTap" arguments:@{@"markerId" : markerId}];
   return controller.consumeTapEvents;
+}
+- (void)onMarkerDragEnd:(NSString*)markerId coordinate:(CLLocationCoordinate2D)coordinate {
+  if (!markerId) {
+    return;
+  }
+  FLTGoogleMapMarkerController* controller = _markerIdToController[markerId];
+  if (!controller) {
+    return;
+  }
+  [_methodChannel invokeMethod:@"marker#onDragEnd"
+                     arguments:@{@"markerId" : markerId, @"position" : PositionToJson(coordinate)}];
 }
 - (void)onInfoWindowTap:(NSString*)markerId {
   if (markerId && _markerIdToController[markerId]) {
